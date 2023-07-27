@@ -43,8 +43,8 @@ const z2 = urlParams.get('z2');
 
 const renderCenterX = (Number(x2) - Number(x1)) / 2
 const renderCenterY = (Number(z2) - Number(z1)) / 2
-const areaUrl = `http://localhost:7542/three/area/${x1}/${z1}/${x2}/${z2}`
-const textureAtlasUrl = 'http://localhost:7542/textureAtlas'
+const areaUrl = `http://${location.host}/three/area/${x1}/${z1}/${x2}/${z2}`
+const textureAtlasUrl = `http://${location.host}/textureAtlas`
 
 const textureLoader = new THREE.TextureLoader();
 const texture = textureLoader.load(textureAtlasUrl);
