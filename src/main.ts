@@ -6,15 +6,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight);
-
+camera.position.set(10, 60, 30);
 const renderer = new THREE.WebGLRenderer({
     canvas: document.querySelector('#bg') as HTMLCanvasElement
 });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-
-camera.position.set(10, 60, 30);
-
 renderer.render(scene, camera);
 
 const ambientLight = new THREE.AmbientLight(0x444455);
@@ -22,21 +19,10 @@ const sun = new THREE.DirectionalLight(0xffeedd, 0.8);
 sun.position.set(0, 100, 0)
 sun.target.position.set(-20, 0, -50);
 sun.castShadow = true;
-sun.shadow.mapSize.width = 4096;
-sun.shadow.mapSize.height = 4096;
-sun.shadow.radius = 2;
-sun.shadow.camera.near = 0.5;
-sun.shadow.camera.far = 500;
-sun.shadow.camera.left = -500;
-sun.shadow.camera.right = 500;
-sun.shadow.camera.top = 500;
-sun.shadow.camera.bottom = -500;
-
 scene.add(ambientLight);
 scene.add(sun);
 scene.add(sun.target);
 
-// const lightHelper = new THREE.PointLightHelper(pointLight);
 const gridHelper = new THREE.GridHelper(200, 50);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0, 0);
@@ -47,7 +33,6 @@ function animate() {
     controls.update();
     renderer.render(scene, camera);
 }
-
 animate();
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -90,20 +75,12 @@ function displayMesh(mesh: WhyMesh, offsetX: number = 0, offsetY: number = 0) {
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(mesh.uvs, 2));
     geometry.setIndex(mesh.indices);
     console.log(mesh.indices.length / 3)
-
     const material = new THREE.MeshStandardMaterial({map: texture, color: 0xffffff});
     material.flatShading = true
-    // const material = new THREE.MeshBasicMaterial({map: texture});
     const object = new THREE.Mesh(geometry, material);
     object.position.x = offsetX + mesh.posX;
     object.position.z = offsetY + mesh.posY;
     object.position.y = -62;
-    // renderer.shadowMapEnabled = true;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.needsUpdate = true;
-    renderer.shadowMap.autoUpdate = true
-    object.castShadow = true;
-    object.receiveShadow = true;
     scene.add(object);
     console.log(`object added at ${object.position.x} ${object.position.z}`)
 }
@@ -112,12 +89,8 @@ function displayObject(object: WhyObject, offsetX: number = 0, offsetY: number =
     if(object.children) {
         object.children.forEach(child => displayObject(child, offsetX + object.posX, offsetY + object.posY))
     }
-    if(object.type) {
-        if (object.type === 'dev.wefhy.whymap.tiles.mesh.ThreeJsMesh') {
-            displayMesh(object as WhyMesh, offsetX, offsetY)
-        } else {
-            console.log(object.type)
-        }
+    if(object.type && object.type === 'ThreeJsMesh') {
+        displayMesh(object as WhyMesh, offsetX, offsetY)
     }
 }
 
