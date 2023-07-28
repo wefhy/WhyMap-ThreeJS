@@ -14,8 +14,9 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.render(scene, camera);
 
-const ambientLight = new THREE.AmbientLight(0x444455);
-const sun = new THREE.DirectionalLight(0xffeedd, 0.8);
+
+const ambientLight = new THREE.AmbientLight(0x444455, 2.0);
+const sun = new THREE.DirectionalLight(0xffeedd, 1.2);
 sun.position.set(0, 100, 0)
 sun.target.position.set(-20, 0, -50);
 sun.castShadow = true;
@@ -41,13 +42,17 @@ const x2 = urlParams.get('x2');
 const z1 = urlParams.get('z1');
 const z2 = urlParams.get('z2');
 
+const baseUrl = (location.host.slice(-4) === "5173") ? "localhost:7542" : location.host
+
 const renderCenterX = (Number(x2) - Number(x1)) / 2
 const renderCenterY = (Number(z2) - Number(z1)) / 2
-const areaUrl = `http://${location.host}/three/area/${x1}/${z1}/${x2}/${z2}`
-const textureAtlasUrl = `http://${location.host}/textureAtlas`
+const areaUrl = `http://${baseUrl}/three/area/${x1}/${z1}/${x2}/${z2}`
+const textureAtlasUrl = `http://${baseUrl}/textureAtlas`
 
 const textureLoader = new THREE.TextureLoader();
 const texture = textureLoader.load(textureAtlasUrl);
+texture.colorSpace = THREE.SRGBColorSpace;
+// texture.colorSpace = THREE.LinearSRGBColorSpace;
 texture.magFilter = THREE.NearestFilter;
 texture.minFilter = THREE.NearestFilter;
 texture.wrapT = THREE.RepeatWrapping;
