@@ -100,5 +100,15 @@ function displayObject(object: WhyObject, offsetX: number = 0, offsetY: number =
 }
 
 loadObject(areaUrl).then(object => {
+    if (!object.children) {
+        console.error('Not a ThreeJsObject');
+        let text = JSON.stringify(object);
+        if (text.length > 1000) {
+            text = text.substring(0, 1000) + '...';
+        }
+        console.error(text);
+        alert(text)
+        return;
+    }
     displayObject(object, -renderCenterX, -renderCenterY)
 })
