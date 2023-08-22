@@ -24,10 +24,8 @@ scene.add(ambientLight);
 scene.add(sun);
 scene.add(sun.target);
 
-const gridHelper = new THREE.GridHelper(200, 50);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0, 0);
-scene.add(gridHelper);
 
 function animate() {
     requestAnimationFrame(animate);
@@ -47,6 +45,7 @@ const baseUrl = (location.host.slice(-4) === "5173") ? "localhost:7542" : locati
 const renderCenterX = (Number(x2) - Number(x1)) / 2
 const renderCenterY = (Number(z2) - Number(z1)) / 2
 const areaUrl = `http://${baseUrl}/three/area/${x1}/${z1}/${x2}/${z2}`
+const overlayUrl = `http://${baseUrl}/three/overlay/${x1}/${z1}/${x2}/${z2}`
 const textureAtlasUrl = `http://${baseUrl}/textureAtlas`
 
 const textureLoader = new THREE.TextureLoader();
@@ -74,14 +73,24 @@ function loadObject(url: string): Promise<WhyObject> {
     return fetch(url).then(response => response.json())
 }
 
-function displayMesh(mesh: WhyMesh, offsetX: number = 0, offsetY: number = 0) {
+function displayMesh(mesh: WhyMesh, offsetX: number = 0, offsetY: number = 0, semitransparent: boolean = false) {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(mesh.vertices, 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(mesh.uvs, 2));
     geometry.setIndex(mesh.indices);
     console.log(mesh.indices.length / 3)
-    const material = new THREE.MeshStandardMaterial({map: texture, color: 0xffffff});
-    material.flatShading = true
+    let material = new THREE.MeshStandardMaterial({map: texture, color: 0xffffff});
+    // let material = new THREE.MeshPhysicalMaterial({map: texture, color: 0xffffff});
+
+    if (semitransparent) {
+        // material.ior = 1.45;
+        material.transparent = true;
+        material.opacity = 0.825;
+        // material.metalness = 1.0;
+        // material.roughness = 0.05;
+    }
+    material.flatShading = true;
+    material.roughness = 1.0;
     const object = new THREE.Mesh(geometry, material);
     object.position.x = offsetX + mesh.posX;
     object.position.z = offsetY + mesh.posY;
@@ -90,25 +99,31 @@ function displayMesh(mesh: WhyMesh, offsetX: number = 0, offsetY: number = 0) {
     console.log(`object added at ${object.position.x} ${object.position.z}`)
 }
 
-function displayObject(object: WhyObject, offsetX: number = 0, offsetY: number = 0) {
+function displayObject(object: WhyObject, offsetX: number = 0, offsetY: number = 0, semitransparent: boolean = false) {
     if(object.children) {
-        object.children.forEach(child => displayObject(child, offsetX + object.posX, offsetY + object.posY))
+        object.children.forEach(child => displayObject(child, offsetX + object.posX, offsetY + object.posY, semitransparent))
     }
     if(object.type && object.type === 'ThreeJsMesh') {
-        displayMesh(object as WhyMesh, offsetX, offsetY)
+        displayMesh(object as WhyMesh, offsetX, offsetY, semitransparent)
     }
 }
 
-loadObject(areaUrl).then(object => {
-    if (!object.children) {
-        console.error('Not a ThreeJsObject');
-        let text = JSON.stringify(object);
-        if (text.length > 1000) {
-            text = text.substring(0, 1000) + '...';
-        }
-        console.error(text);
-        alert(text)
-        return;
+function reportError(object: WhyObject) {
+    console.error('Not a ThreeJsObject');
+    let text = JSON.stringify(object);
+    if (text.length > 1000) {
+        text = text.substring(0, 1000) + '...';
     }
+    console.error(text);
+    alert(text)
+}
+
+loadObject(areaUrl).then(object => {
+    if (!object.children) { reportError(object); return; }
     displayObject(object, -renderCenterX, -renderCenterY)
+})
+
+loadObject(overlayUrl).then(object => {
+    if (!object.children) { reportError(object); return; }
+    displayObject(object, -renderCenterX, -renderCenterY, true)
 })
