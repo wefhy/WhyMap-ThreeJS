@@ -70,7 +70,13 @@ interface WhyMesh extends WhyObject {
 }
 
 function loadObject(url: string): Promise<WhyObject> {
-    return fetch(url).then(response => response.json())
+    return fetch(url).then(response => response.json()).catch(error => {
+        console.error(error);
+        document.getElementById("app")!!.appendChild(
+            document.createTextNode("Error: " + error)
+        )
+        // alert(error)
+    })
 }
 
 function displayMesh(mesh: WhyMesh, offsetX: number = 0, offsetY: number = 0, semitransparent: boolean = false) {
@@ -115,7 +121,11 @@ function reportError(object: WhyObject) {
         text = text.substring(0, 1000) + '...';
     }
     console.error(text);
-    alert(text)
+    document.getElementById("bg")!!.style.display = "none"
+    document.getElementById("app")!!.appendChild(
+        document.createTextNode(text)
+    )
+    // alert(text)
 }
 
 loadObject(areaUrl).then(object => {
